@@ -1,0 +1,6 @@
+/OBJ
+/MDK_Pro/Debugconfig/
+/MDK_Pro/*.uvguix.*
+/MDK_Pro/*.uvoptx
+/MDK_Pro/.vscode/
+/MDK_Pro/EventRecorderStub.scvd

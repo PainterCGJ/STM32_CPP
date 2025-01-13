@@ -6,7 +6,7 @@ extern "C" {
 #include "FreeRTOS.h"
 #include "task.h"
 #include "FreeRTOSConfig.h"
-#include "stm32f10x_uart_bsp.hpp"
+
 //#include "stdint.h"
 //#include "stdio.h"
 //#include "sys.h"
@@ -16,3 +16,5 @@ extern "C" {
 #ifdef __cplusplus
 }  
 #endif
+
+#include "stm32f10x_uart_bsp.hpp"

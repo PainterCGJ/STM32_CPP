@@ -38,10 +38,11 @@ const Uart_Dev::Uart_info USART3_PB10TX_PB11RX __attribute__((unused)) =
         RCC_APB2Periph_GPIOB,
 };
 
-Uart_Dev::Uart_Dev(){
-    if_init = 0;
+Uart_Dev::Uart_Dev()
+{
+    __if_init = 0;
 }
-Uart_Dev::Uart_Dev(Uart_info info, uint32_t baudrate)
+Uart_Dev::Uart_Dev(Uart_info info, uint32_t baudrate, uint16_t rx_max_size)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
@@ -49,22 +50,23 @@ Uart_Dev::Uart_Dev(Uart_info info, uint32_t baudrate)
     uint8_t NVIC_IRQChannel;
     uint8_t priority;
 
-    dev_info = info;
+    __dev_info = info;
+    __rx_max_size = rx_max_size;
 
     /* init gpio */
-    RCC_APB2PeriphClockCmd(dev_info.rx_port_rcc, ENABLE);
-    RCC_APB2PeriphClockCmd(dev_info.tx_port_rcc, ENABLE);
+    RCC_APB2PeriphClockCmd(__dev_info.rx_port_rcc, ENABLE);
+    RCC_APB2PeriphClockCmd(__dev_info.tx_port_rcc, ENABLE);
 
-    GPIO_InitStructure.GPIO_Pin = dev_info.tx_pin;
+    GPIO_InitStructure.GPIO_Pin = __dev_info.tx_pin;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-    GPIO_Init(dev_info.tx_port, &GPIO_InitStructure);
+    GPIO_Init(__dev_info.tx_port, &GPIO_InitStructure);
 
-    GPIO_InitStructure.GPIO_Pin = dev_info.rx_pin;
+    GPIO_InitStructure.GPIO_Pin = __dev_info.rx_pin;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-    GPIO_Init(dev_info.rx_port, &GPIO_InitStructure);
+    GPIO_Init(__dev_info.rx_port, &GPIO_InitStructure);
 
-    switch ((int)(dev_info.USARTx))
+    switch ((int)(__dev_info.USARTx))
     {
     case (int)USART1:
     {
@@ -107,29 +109,51 @@ Uart_Dev::Uart_Dev(Uart_info info, uint32_t baudrate)
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 
-    USART_Init(dev_info.USARTx, &USART_InitStructure);
-    USART_ITConfig(dev_info.USARTx, USART_IT_RXNE, ENABLE);
+    USART_Init(__dev_info.USARTx, &USART_InitStructure);
+    USART_ITConfig(__dev_info.USARTx, USART_IT_RXNE, ENABLE);
 
-    USART_Cmd(dev_info.USARTx, ENABLE);
+    USART_Cmd(__dev_info.USARTx, ENABLE);
+    __if_init = 1;
 }
 
 void Uart_Dev::send(uint8_t *data, uint16_t len)
 {
     for (uint16_t i = 0; i < len; i++)
     {
-        USART_SendData(dev_info.USARTx, data[i]);
-        while (USART_GetFlagStatus(dev_info.USARTx, USART_FLAG_TXE) == RESET)
+        USART_SendData(__dev_info.USARTx, data[i]);
+        while (USART_GetFlagStatus(__dev_info.USARTx, USART_FLAG_TXE) == RESET)
             ;
     }
 }
 
+void Uart_Dev::isr_handler(uint8_t data)
+{
+    // if(__rx_queue.size()<__rx_max_size)
+    // {
+    //     __rx_queue.push_back(data);
+    // }
+}
 
-extern "C" {
+uint8_t Uart_Dev::recv()
+{
+    uint8_t data = __rx_queue.front();
+    // __rx_queue.pop();
+    return data;
+}
+
+uint16_t Uart_Dev::recv_len()
+{
+    return __rx_queue.size();
+}
+
+extern "C"
+{
     void USART1_IRQHandler(void)
     {
         if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
         {
-
+            uint8_t data = USART_ReceiveData(USART1);
+            usart1->isr_handler(data);
         }
     }
 
@@ -137,7 +161,8 @@ extern "C" {
     {
         if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
         {
-            
+            uint8_t data = USART_ReceiveData(USART2);
+            usart2->isr_handler(data);
         }
     }
 
@@ -145,7 +170,8 @@ extern "C" {
     {
         if (USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)
         {
-            
+            uint8_t data = USART_ReceiveData(USART3);
+            usart3->isr_handler(data);
         }
     }
 }

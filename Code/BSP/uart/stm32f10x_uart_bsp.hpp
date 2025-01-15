@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <queue>
 #include <vector>
+#include "sys_bsp.hpp"
 class Uart_Dev
 {
 public:
@@ -21,14 +22,16 @@ public:
     Uart_Dev();
     Uart_Dev(Uart_info info, uint32_t baudrate, uint16_t rx_max_size);
     void send(uint8_t *data, uint16_t len);
+    void send(uint8_t data);
     uint8_t recv();
     uint16_t recv_len();
     void isr_handler(uint8_t data);
+    void set_debug();
 private:
     uint8_t __if_init;
     Uart_info __dev_info;
-    // std::queue<uint8_t> __rx_queue;
-    std::vector<uint8_t> __rx_queue;
+    std::queue<uint8_t, std::deque<uint8_t, OSAllocator<uint8_t>>> __rx_queue;
+    // std::vector<uint8_t,OSAllocator<uint8_t>> __rx_queue;
     uint16_t __rx_max_size;
 };
 

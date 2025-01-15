@@ -1,9 +1,11 @@
 #include "stm32f10x_uart_bsp.hpp"
+#include "sys_bsp.hpp"
 #include "priority.h"
 
 static Uart_Dev *usart1;
 static Uart_Dev *usart2;
 static Uart_Dev *usart3;
+static Uart_Dev *debug_port;
 
 const Uart_Dev::Uart_info USART1_PA9TX_PA10RX __attribute__((unused)) = {
     USART1,
@@ -116,6 +118,11 @@ Uart_Dev::Uart_Dev(Uart_info info, uint32_t baudrate, uint16_t rx_max_size)
     __if_init = 1;
 }
 
+void Uart_Dev::set_debug()
+{
+    debug_port = this;
+}
+
 void Uart_Dev::send(uint8_t *data, uint16_t len)
 {
     for (uint16_t i = 0; i < len; i++)
@@ -126,18 +133,25 @@ void Uart_Dev::send(uint8_t *data, uint16_t len)
     }
 }
 
+void Uart_Dev::send(uint8_t data)
+{
+    USART_SendData(__dev_info.USARTx, data);
+    while (USART_GetFlagStatus(__dev_info.USARTx, USART_FLAG_TXE) == RESET)
+        ;
+}
+
 void Uart_Dev::isr_handler(uint8_t data)
 {
-    // if(__rx_queue.size()<__rx_max_size)
-    // {
-    //     __rx_queue.push_back(data);
-    // }
+    if (__rx_queue.size() < __rx_max_size)
+    {
+        __rx_queue.push(data);
+    }
 }
 
 uint8_t Uart_Dev::recv()
 {
     uint8_t data = __rx_queue.front();
-    // __rx_queue.pop();
+    __rx_queue.pop();
     return data;
 }
 
@@ -174,4 +188,10 @@ extern "C"
             usart3->isr_handler(data);
         }
     }
+}
+
+int std::fputc(int ch, std::FILE *f)
+{
+    debug_port->send(ch);
+    return ch;
 }

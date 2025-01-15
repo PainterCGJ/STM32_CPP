@@ -1,7 +1,10 @@
 #pragma once
 
 #include "stm32f10x.h"
-
+#include <cstddef>
+#include <cstdint>
+#include <new>
+#include "FreeRTOS.h"
 // 0,不支持os
 // 1,支持os
 #define SYSTEM_SUPPORT_OS 1 // 定义系统文件夹是否支持OS
@@ -57,6 +60,8 @@
 #define PGout(n) BIT_ADDR(GPIOG_ODR_Addr, n) // 输出
 #define PGin(n) BIT_ADDR(GPIOG_IDR_Addr, n)  // 输入
 
+
+
 // 以下为汇编函数
 #ifdef __cplusplus
 extern "C"
@@ -70,3 +75,65 @@ extern "C"
 }
 #endif
 
+template <class _TypeT>
+class OSAllocator
+{
+public:
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef _TypeT value_type;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
+
+    OSAllocator() noexcept {}
+
+    OSAllocator(const OSAllocator&) noexcept {}
+
+    template <class _TypeU>
+    struct rebind {
+        typedef OSAllocator<_TypeU> other;
+    };
+
+    template <class _TypeU>
+    OSAllocator(const OSAllocator<_TypeU>&) noexcept {}
+
+    template <class _TypeU>
+    OSAllocator& operator=(const OSAllocator<_TypeU>&) noexcept {
+        return *this;
+    }
+
+    pointer address(reference __x) const {
+        return &__x;
+    }
+
+    const_pointer address(const_reference __x) const {
+        return &__x;
+    }
+
+    pointer allocate(size_type __n, const void* = 0) {
+        if (__n == 0) return nullptr;
+        pointer __p = static_cast<pointer>(pvPortMalloc(__n * sizeof(value_type)));
+        // if (!__p) throw std::bad_alloc();
+        return __p;
+    }
+
+    void deallocate(pointer __p, size_type) {
+        vPortFree(__p);
+    }
+
+    size_type max_size() const noexcept {
+        return size_type(-1) / sizeof(value_type);
+    }
+
+    template <class _Up, class... _Args>
+	void construct(_Up* __p, _Args... __args) {
+		::new((void *)__p) _Up(__args...);
+	}
+
+    template <class _Up>
+    void destroy(_Up* __p) noexcept {
+        __p->~_Up();
+    }
+};

@@ -6,4 +6,6 @@ typedef enum
     UASRT1_PRIORITY,
     UASRT2_PRIORITY,
     UASRT3_PRIORITY,
+    TIM2_PRIORITY,
+    TIM3_PRIORITY,
 }Interrupt_Priority;

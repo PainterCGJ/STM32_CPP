@@ -2,7 +2,6 @@
 #include "stm32f10x.h"
 #include <cstdio>
 #include <queue>
-#include <vector>
 #include "sys_bsp.hpp"
 class Uart_Dev
 {

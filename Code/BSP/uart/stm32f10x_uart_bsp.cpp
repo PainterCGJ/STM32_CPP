@@ -27,17 +27,16 @@ const Uart_Dev::Uart_info USART2_PA2TX_PA3RX __attribute__((unused)) = {
     RCC_APB2Periph_GPIOA,
 };
 
-const Uart_Dev::Uart_info USART3_PB10TX_PB11RX __attribute__((unused)) =
-    {
-        USART3,
+const Uart_Dev::Uart_info USART3_PB10TX_PB11RX __attribute__((unused)) = {
+    USART3,
 
-        GPIOB,
-        GPIO_Pin_10,
-        RCC_APB2Periph_GPIOB,
+    GPIOB,
+    GPIO_Pin_10,
+    RCC_APB2Periph_GPIOB,
 
-        GPIOB,
-        GPIO_Pin_11,
-        RCC_APB2Periph_GPIOB,
+    GPIOB,
+    GPIO_Pin_11,
+    RCC_APB2Periph_GPIOB,
 };
 
 Uart_Dev::Uart_Dev()

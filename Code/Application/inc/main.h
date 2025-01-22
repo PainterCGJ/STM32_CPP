@@ -20,3 +20,4 @@ extern "C" {
 
 #include "sys_bsp.hpp"
 #include "stm32f10x_uart_bsp.hpp"
+#include "stm32f10x_timer_bsp.hpp"

@@ -340,7 +340,7 @@
               <MiscControls>--c99 --cpp11</MiscControls>
               <Define>STM32F10X_MD,USE_STDPERIPH_DRIVER,USE_OS</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Code\CMSIS;..\Code\Application\inc;..\Code\BSP\delay;..\Code\BSP\sys;..\Code\Interface\inc;..\Code\STM32F10x_StdPeriph_Driver\inc;..\Code\FreeRTOS;..\Code\FreeRTOS\inc;..\Code\FreeRTOS\port\RVDS\ARM_CM3;..\Code\BSP\sys;..\Code\BSP\uart;..\Code\BSP</IncludePath>
+              <IncludePath>..\Code\CMSIS;..\Code\Application\inc;..\Code\BSP\delay;..\Code\BSP\sys;..\Code\Interface\inc;..\Code\STM32F10x_StdPeriph_Driver\inc;..\Code\FreeRTOS;..\Code\FreeRTOS\inc;..\Code\FreeRTOS\port\RVDS\ARM_CM3;..\Code\BSP\sys;..\Code\BSP\uart;..\Code\BSP\timer;..\Code\BSP;..\Code\BSP\systick</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -603,6 +603,16 @@
               <FileName>stm32f10x_uart_bsp.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\Code\BSP\uart\stm32f10x_uart_bsp.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_timer_bsp.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\Code\BSP\timer\stm32f10x_timer_bsp.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_systick_bsp.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\Code\BSP\systick\stm32f10x_systick_bsp.cpp</FilePath>
             </File>
           </Files>
         </Group>

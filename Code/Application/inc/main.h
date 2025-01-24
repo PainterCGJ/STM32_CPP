@@ -19,5 +19,6 @@ extern "C" {
 #endif
 
 #include "sys_bsp.hpp"
+#include "rtos_bsp.hpp"
 #include "stm32f10x_uart_bsp.hpp"
 #include "stm32f10x_timer_bsp.hpp"

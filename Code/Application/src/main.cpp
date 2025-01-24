@@ -29,6 +29,8 @@ int main(void)
 	Timer_Dev timer(init_info,2000000);
 	timer.enable();
 	uint8_t rx;
+	// RTOS::rtos_start();
+	RTOS::os_start_scheduler();
 	while (1)
 	{
 		if (com.recv_len())

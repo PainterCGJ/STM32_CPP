@@ -25,14 +25,10 @@
  * https://github.com/FreeRTOS
  *
  */
-
+#define __STDC_LIMIT_MACROS 
 #include <stdlib.h>
 #include <string.h>
-#include <cstdint>
-#ifndef SIZE_MAX
-#define SIZE_MAX ((size_t)-1)
-#endif
-
+#include <stddef.h>
 /* Defining MPU_WRAPPERS_INCLUDED_FROM_API_FILE prevents task.h from redefining
  * all the API functions to use the MPU wrappers.  That should only be done when
  * task.h is included from an application file. */

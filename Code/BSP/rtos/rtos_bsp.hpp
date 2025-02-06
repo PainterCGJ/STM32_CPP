@@ -18,14 +18,18 @@ namespace RTOS
     class Thread
     {
     public:
-        Thread(void (*task_code)(void *p_arg),const char* name, uint32_t priority)
+        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority) : __task_code(task_code)
         {
-            xTaskCreate(__task_code,name,__starck_size,nullptr,priority,__handler);
+            xTaskCreate(task_code, name, __starck_size, nullptr, priority, __handler);
+        }
+        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority,TaskHandle_t *handler) : __task_code(task_code)
+        {
+            xTaskCreate(task_code, name, __starck_size, nullptr, priority, handler);
         }
 
-        Thread(void (*task_code)(void *p_arg),const char* name, uint32_t priority,size_t starck_size):__starck_size(starck_size)
+        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority, size_t starck_size) : __task_code(task_code), __starck_size(starck_size)
         {
-            xTaskCreate(__task_code,name,__starck_size,nullptr,priority,__handler);
+            xTaskCreate(task_code, name, __starck_size, nullptr, priority, __handler);
         }
 
     private:
@@ -36,7 +40,7 @@ namespace RTOS
 
     void os_start_scheduler();
     uint32_t os_ms_to_ticks(uint32_t nms);
-    
+
     /* queue */
     typedef QueueHandle_t OS_Queue;
     OS_Queue os_queue_create(uint32_t queue_length, uint32_t item_size);

@@ -18,6 +18,8 @@ extern "C" {
 }  
 #endif
 
+#include "priority.h"
+#include "stm32f10x_systick_bsp.hpp"
 #include "sys_bsp.hpp"
 #include "rtos_bsp.hpp"
 #include "stm32f10x_uart_bsp.hpp"

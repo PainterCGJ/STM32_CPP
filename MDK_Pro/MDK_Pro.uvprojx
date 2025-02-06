@@ -10,7 +10,8 @@
       <TargetName>STM32_CPP</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
+      <pArmCC>5060960::V5.06 update 7 (build 960)::.\ARMCC</pArmCC>
+      <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -337,7 +338,7 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls>--c99 --cpp11</MiscControls>
+              <MiscControls>--cpp11</MiscControls>
               <Define>STM32F10X_MD,USE_STDPERIPH_DRIVER,USE_OS</Define>
               <Undefine></Undefine>
               <IncludePath>..\Code\CMSIS;..\Code\Application\inc;..\Code\BSP\delay;..\Code\BSP\sys;..\Code\Interface\inc;..\Code\STM32F10x_StdPeriph_Driver\inc;..\Code\FreeRTOS;..\Code\FreeRTOS\inc;..\Code\FreeRTOS\port\RVDS\ARM_CM3;..\Code\BSP\sys;..\Code\BSP\uart;..\Code\BSP\timer;..\Code\BSP;..\Code\BSP\systick;..\Code\BSP\rtos</IncludePath>

@@ -9,6 +9,7 @@ using namespace std;
 namespace RTOS
 {
 
+#define Default_Starck_size 128
 #define OS_WAIT_FOREVER portMAX_DELAY
 
     typedef enum
@@ -55,10 +56,7 @@ namespace RTOS
         {
             xTaskCreate(task_code, name, __starck_size, nullptr, priority, __handler);
         }
-        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority, TaskHandle_t *handler) : __task_code(task_code)
-        {
-            xTaskCreate(task_code, name, __starck_size, nullptr, priority, handler);
-        }
+
         Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority, size_t starck_size) : __task_code(task_code), __starck_size(starck_size)
         {
             xTaskCreate(task_code, name, __starck_size, nullptr, priority, __handler);
@@ -66,7 +64,7 @@ namespace RTOS
 
     private:
         void (*__task_code)(void *p_arg);
-        size_t __starck_size = 128;
+        size_t __starck_size = Default_Starck_size;
         TaskHandle_t *__handler;
     };
 

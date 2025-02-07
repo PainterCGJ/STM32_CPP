@@ -9,34 +9,13 @@ using namespace std;
 namespace RTOS
 {
 
+#define OS_WAIT_FOREVER portMAX_DELAY
+
     typedef enum
     {
         osFALSE = pdFALSE,
         osTURE = pdTRUE,
     } OS_State;
-
-    class Thread
-    {
-    public:
-        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority) : __task_code(task_code)
-        {
-            xTaskCreate(task_code, name, __starck_size, nullptr, priority, __handler);
-        }
-        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority,TaskHandle_t *handler) : __task_code(task_code)
-        {
-            xTaskCreate(task_code, name, __starck_size, nullptr, priority, handler);
-        }
-
-        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority, size_t starck_size) : __task_code(task_code), __starck_size(starck_size)
-        {
-            xTaskCreate(task_code, name, __starck_size, nullptr, priority, __handler);
-        }
-
-    private:
-        void (*__task_code)(void *p_arg);
-        size_t __starck_size = 128;
-        TaskHandle_t *__handler;
-    };
 
     void os_start_scheduler();
     uint32_t os_ms_to_ticks(uint32_t nms);
@@ -68,6 +47,71 @@ namespace RTOS
     OS_EventBits os_clear_event_bits(OS_Event event, OS_EventBits bits_to_clear);
     OS_EventBits os_get_event_bits(OS_Event event);
     OS_EventBits os_event_sync(OS_Event event, const OS_EventBits bits_to_set, const OS_EventBits bits_wait_for, uint32_t ticks_to_wait);
+
+    class Thread
+    {
+    public:
+        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority) : __task_code(task_code)
+        {
+            xTaskCreate(task_code, name, __starck_size, nullptr, priority, __handler);
+        }
+        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority, TaskHandle_t *handler) : __task_code(task_code)
+        {
+            xTaskCreate(task_code, name, __starck_size, nullptr, priority, handler);
+        }
+        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority, size_t starck_size) : __task_code(task_code), __starck_size(starck_size)
+        {
+            xTaskCreate(task_code, name, __starck_size, nullptr, priority, __handler);
+        }
+
+    private:
+        void (*__task_code)(void *p_arg);
+        size_t __starck_size = 128;
+        TaskHandle_t *__handler;
+    };
+
+    template <typename _Type>
+    class queue
+    {
+    public:
+        queue(uint32_t queue_length)
+        {
+            __handler = os_queue_create(queue_length, sizeof(_Type));
+        }
+
+        OS_State push(const _Type &elm_to_push)
+        {
+            return os_queue_send(__handler, (uint8_t *)(&elm_to_push), 0);
+        }
+
+        OS_State push(const _Type &elm_to_push, uint32_t ticks_to_wait)
+        {
+            return os_queue_send(__handler, (uint8_t *)(&elm_to_push), ticks_to_wait);
+        }
+
+        OS_State pop(_Type &elm_recv)
+        {
+            return os_queue_recv(__handler, (uint8_t *)(&elm_recv), 0);
+        }
+
+        OS_State pop(_Type &elm_recv, uint32_t ticks_to_wait)
+        {
+            return os_queue_recv(__handler, (uint8_t *)(&elm_recv), ticks_to_wait);
+        }
+
+        uint32_t size()
+        {
+            return uxQueueMessagesWaiting( __handler );
+        }
+
+        ~queue()
+        {
+            os_queue_delet(__handler);
+        }
+
+    private:
+        OS_Queue __handler;
+    };
 
     // std::vector
 }

@@ -1,10 +1,6 @@
 #include "stm32f10x_timer_bsp.hpp"
 #include "priority.h"
 
-Timer_Dev *timer2;
-Timer_Dev *timer3;
-Timer_Dev *timer4;
-
 uint8_t Timer_Dev::__bsp_init_flag = 0;
 Timer_Dev *Timer_Dev::__timer_dev[(int)Timer_Dev::TimerID::T_NUM];
 

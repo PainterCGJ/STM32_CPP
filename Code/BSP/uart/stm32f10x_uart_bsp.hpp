@@ -59,19 +59,6 @@ public:
         __dev_info = info;
         __rx_max_size = rx_max_size;
 
-        /* init gpio */
-        RCC_APB2PeriphClockCmd(__dev_info.rx_port_rcc, ENABLE);
-        RCC_APB2PeriphClockCmd(__dev_info.tx_port_rcc, ENABLE);
-
-        GPIO_InitStructure.GPIO_Pin = __dev_info.tx_pin;
-        GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-        GPIO_Init(__dev_info.tx_port, &GPIO_InitStructure);
-
-        GPIO_InitStructure.GPIO_Pin = __dev_info.rx_pin;
-        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-        GPIO_Init(__dev_info.rx_port, &GPIO_InitStructure);
-
         switch ((int)(__dev_info.USARTx))
         {
         case (int)USART1:
@@ -118,6 +105,19 @@ public:
 
         USART_Init(__dev_info.USARTx, &USART_InitStructure);
         USART_ITConfig(__dev_info.USARTx, USART_IT_RXNE, ENABLE);
+
+        /* init gpio */
+        RCC_APB2PeriphClockCmd(__dev_info.rx_port_rcc, ENABLE);
+        RCC_APB2PeriphClockCmd(__dev_info.tx_port_rcc, ENABLE);
+
+        GPIO_InitStructure.GPIO_Pin = __dev_info.tx_pin;
+        GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+        GPIO_Init(__dev_info.tx_port, &GPIO_InitStructure);
+
+        GPIO_InitStructure.GPIO_Pin = __dev_info.rx_pin;
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+        GPIO_Init(__dev_info.rx_port, &GPIO_InitStructure);
 
         USART_Cmd(__dev_info.USARTx, ENABLE);
     }

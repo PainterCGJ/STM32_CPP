@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <queue>
 #include "sys_bsp.hpp"
+#include "rtos_bsp.hpp"
 class Uart_Dev
 {
 public:
@@ -18,7 +19,7 @@ public:
         uint32_t rx_pin;
         uint32_t rx_port_rcc;
     } Uart_info;
-    Uart_Dev();
+    Uart_Dev():__if_init(0),__rx_queue(100){};
     Uart_Dev(Uart_info info, uint32_t baudrate, uint16_t rx_max_size);
     void send(uint8_t *data, uint16_t len);
     void send(uint8_t data);
@@ -29,7 +30,8 @@ public:
 private:
     uint8_t __if_init;
     Uart_info __dev_info;
-    std::queue<uint8_t, std::deque<uint8_t, OSAllocator<uint8_t>>> __rx_queue;
+    RTOS::queue<uint8_t> __rx_queue;
+    // std::queue<uint8_t, std::deque<uint8_t, OSAllocator<uint8_t>>> __rx_queue;
     // std::vector<uint8_t,OSAllocator<uint8_t>> __rx_queue;
     uint16_t __rx_max_size;
 };

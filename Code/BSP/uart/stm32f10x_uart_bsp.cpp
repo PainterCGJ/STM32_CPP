@@ -39,11 +39,7 @@ const Uart_Dev::Uart_info USART3_PB10TX_PB11RX __attribute__((unused)) = {
     RCC_APB2Periph_GPIOB,
 };
 
-Uart_Dev::Uart_Dev()
-{
-    __if_init = 0;
-}
-Uart_Dev::Uart_Dev(Uart_info info, uint32_t baudrate, uint16_t rx_max_size)
+Uart_Dev::Uart_Dev(Uart_info info, uint32_t baudrate, uint16_t rx_max_size) : __rx_queue(rx_max_size)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
@@ -141,16 +137,14 @@ void Uart_Dev::send(uint8_t data)
 
 void Uart_Dev::isr_handler(uint8_t data)
 {
-    if (__rx_queue.size() < __rx_max_size)
-    {
-        __rx_queue.push(data);
-    }
+    __rx_queue.push(data);
 }
 
 uint8_t Uart_Dev::recv()
 {
-    uint8_t data = __rx_queue.front();
-    __rx_queue.pop();
+    // uint8_t data = __rx_queue.front();
+    uint8_t data;
+    __rx_queue.pop(data);
     return data;
 }
 

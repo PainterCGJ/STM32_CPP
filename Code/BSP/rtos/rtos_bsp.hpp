@@ -5,6 +5,7 @@
 #include "queue.h"
 #include "task.h"
 #include <vector>
+// #include <list>
 
 using namespace std;
 namespace RTOS
@@ -63,6 +64,10 @@ namespace RTOS
                                const OS_EventBits bits_wait_for,
                                uint32_t ticks_to_wait);
 
+    /* cpu */
+    uint32_t os_lock(void);
+    void os_unlock(uint32_t key);
+
     class Thread
     {
     public:
@@ -74,7 +79,7 @@ namespace RTOS
          */
         Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority) : __task_code(task_code)
         {
-            xTaskCreate(task_code, name, __starck_size, nullptr, priority, __handler);
+            xTaskCreate(task_code, name, __starck_size, nullptr, priority, &__handler);
         }
 
         /**
@@ -86,20 +91,25 @@ namespace RTOS
          */
         Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority, size_t starck_size) : __task_code(task_code), __starck_size(starck_size)
         {
-            xTaskCreate(task_code, name, __starck_size, nullptr, priority, __handler);
+            xTaskCreate(task_code, name, __starck_size, nullptr, priority, &__handler);
+        }
+
+        void kill()
+        {
+            vTaskDelete(__handler);
         }
 
     private:
         void (*__task_code)(void *p_arg);
         size_t __starck_size = Default_Starck_size;
-        TaskHandle_t *__handler;
+        TaskHandle_t __handler;
+        // static std::list<TaskHandle_t> __thread_list;
     };
 
     template <typename _Type>
     class queue
     {
     public:
-
         /**
          * @brief 构造队列
          * @param[in] queue_length 队列容量，指能容纳元素的个数
@@ -163,5 +173,46 @@ namespace RTOS
         OS_Queue __handler;
     };
 
+    template <typename _Type=int>
+    class list
+    {
+    public:
+        list()
+        {
+            __handle = os_list_create();
+        }
+
+        void push_back(_Type &elm_to_push)
+        {
+            _Type *__elm = new _Type;
+            OS_ListItem* __item = new OS_ListItem;
+            std::memcpy(__elm, &elm_to_push, sizeof(_Type));
+            os_list_item_init(__item,__elm);
+            os_list_insert_end(__handle,__item);
+        }
+
+        _Type& front()
+        {
+            return *((_Type*)(((OS_ListItem*)listGET_HEAD_ENTRY(__handle))->pvOwner));
+        }
+
+        _Type& back()
+        {
+            return *((_Type*)((__handle->xListEnd.pxPrevious->pvOwner)));
+        }
+
+        void print()
+        {
+            os_list_printf(__handle);
+        }
+
+        uint32_t size()
+        {
+            return __handle->uxNumberOfItems;
+        }
+
+    private:
+        OS_List __handle;
+    };
     // std::vector
 } // namespace RTOS

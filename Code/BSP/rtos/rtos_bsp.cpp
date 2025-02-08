@@ -238,5 +238,46 @@ namespace RTOS
         }
         return 0;
     }
+
+    uint32_t os_lock(void)
+    {
+        if (xPortIsInsideInterrupt() == pdTRUE)
+        {
+            return taskENTER_CRITICAL_FROM_ISR();
+        }
+        else
+        {
+            taskENTER_CRITICAL();
+        }
+        return 0;
+    }
+
+    void os_unlock(uint32_t key)
+    {
+        if (xPortIsInsideInterrupt() == pdTRUE)
+        {
+            taskEXIT_CRITICAL_FROM_ISR(key);
+        }
+        else
+        {
+            taskEXIT_CRITICAL();
+        }
+    }
+}
+
+extern void rtos_main(void);
+void system_config(void);
+
+static void __main(void *parg)
+{
+    rtos_main();
+}
+TaskHandle_t MainHandler;
+
+int main(void)
+{
+    system_config();
+    xTaskCreate(__main, "main", 128, nullptr, 0, &MainHandler);
+    RTOS::os_start_scheduler();
 }
 /* end of file */

@@ -4,7 +4,8 @@
 #include "list.h"
 #include "queue.h"
 #include "task.h"
-#include <vector>
+#include <cstring>
+#include <iterator>
 // #include <list>
 
 using namespace std;
@@ -13,6 +14,7 @@ namespace RTOS
 
 #define Default_Starck_size 128
 #define OS_WAIT_FOREVER portMAX_DELAY
+#define List_Index_Loop(item) for (OS_ListItem *__end = (OS_ListItem *)listGET_END_MARKER(item->pxContainer); item != __end; item = item->pxNext)
 
     typedef enum
     {
@@ -26,7 +28,7 @@ namespace RTOS
     void os_start_scheduler();
 
     /**
-     * @brief 将心毫秒单位转化为心跳
+     * @brief 将毫秒单位转化为心跳
      * @param[in] nms 毫秒值
      * @return  nms毫秒对应的心跳值
      */
@@ -173,7 +175,7 @@ namespace RTOS
         OS_Queue __handler;
     };
 
-    template <typename _Type=int>
+    template <typename _Type = int>
     class list
     {
     public:
@@ -182,23 +184,52 @@ namespace RTOS
             __handle = os_list_create();
         }
 
-        void push_back(_Type &elm_to_push)
+        void push_back(const _Type &elm_to_push)
         {
             _Type *__elm = new _Type;
-            OS_ListItem* __item = new OS_ListItem;
+            OS_ListItem *__item = new OS_ListItem;
             std::memcpy(__elm, &elm_to_push, sizeof(_Type));
-            os_list_item_init(__item,__elm);
-            os_list_insert_end(__handle,__item);
+            os_list_item_init(__item, __elm);
+            os_list_insert_end(__handle, __item);
         }
 
-        _Type& front()
+        _Type &front()
         {
-            return *((_Type*)(((OS_ListItem*)listGET_HEAD_ENTRY(__handle))->pvOwner));
+            return *((_Type *)(((OS_ListItem *)listGET_HEAD_ENTRY(__handle))->pvOwner));
         }
 
-        _Type& back()
+        _Type &back()
         {
-            return *((_Type*)((__handle->xListEnd.pxPrevious->pvOwner)));
+            return *((_Type *)((__handle->xListEnd.pxPrevious->pvOwner)));
+        }
+
+        void pop_front()
+        {
+            OS_ListItem *__item = (OS_ListItem *)listGET_HEAD_ENTRY(__handle);
+            os_list_remove_item(__item);
+            os_delet_list_item(__item, osTURE);
+        }
+
+        void pop_back()
+        {
+            OS_ListItem *__item = __handle->xListEnd.pxPrevious;
+            os_list_remove_item(__item);
+            os_delet_list_item(__item, osTURE);
+        }
+
+        void remove(const _Type &__elm)
+        {
+            OS_ListItem *__item = (OS_ListItem *)listGET_HEAD_ENTRY(__handle);
+            OS_ListItem *__next;
+            List_Index_Loop(__item)
+            {
+                if (std::memcmp(&__elm, __item->pvOwner, sizeof(_Type)) == 0)
+                {
+                    __next = (OS_ListItem *)__item->pxNext;
+                    os_delet_list_item(__item, osTURE);
+                    __item = __next;
+                }
+            }
         }
 
         void print()
@@ -209,6 +240,66 @@ namespace RTOS
         uint32_t size()
         {
             return __handle->uxNumberOfItems;
+        }
+
+        class __list_iterator : public std::iterator<std::forward_iterator_tag, _Type>
+        {
+        private:
+            OS_ListItem *_current;
+
+        public:
+            __list_iterator(OS_ListItem *item = nullptr) : _current(item) {}
+
+            // 解引用操作符
+            _Type &operator*() const
+            {
+                return *reinterpret_cast<_Type *>(_current->pvOwner);
+            }
+
+            // 成员访问操作符
+            _Type *operator->() const
+            {
+                return reinterpret_cast<_Type *>(_current->pvOwner);
+            }
+
+            // 前置递增操作符
+            __list_iterator &operator++()
+            {
+                _current = reinterpret_cast<OS_ListItem *>(listGET_NEXT(_current));
+                return *this;
+            }
+
+            // 后置递增操作符
+            __list_iterator operator++(int)
+            {
+                __list_iterator tmp = *this;
+                ++(*this);//利用前置递增操作符
+                return tmp;
+            }
+
+            // 相等性比较
+            bool operator==(const __list_iterator &other) const
+            {
+                return _current == other._current;
+            }
+
+            // 不等性比较
+            bool operator!=(const __list_iterator &other) const
+            {
+                return _current != other._current;
+            }
+        };
+
+        // 返回指向链表开头的迭代器
+        __list_iterator begin() const
+        {
+            return __list_iterator(reinterpret_cast<OS_ListItem *>(listGET_HEAD_ENTRY(__handle)));
+        }
+
+        // 返回指向链表末尾的迭代器
+        __list_iterator end() const
+        {
+            return __list_iterator(reinterpret_cast<OS_ListItem *>(&(__handle->xListEnd)));
         }
 
     private:

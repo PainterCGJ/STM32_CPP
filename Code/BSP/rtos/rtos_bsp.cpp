@@ -121,12 +121,14 @@ namespace RTOS
     {
         OS_ListItem *pxItem = (OS_ListItem *)(list->xListEnd.pxNext);
         printf("\r\n================================\r\n");
-        printf("Number of item: %d\r\n", list->uxNumberOfItems);
+        printf("List:               0x%p\r\n", list);
+        printf("Number of item:     %d\r\n", list->uxNumberOfItems);
         printf("xListEnd:           0x%p\r\n", &list->xListEnd);
         printf("xListEnd->pxNext:   0x%p\r\n", list->xListEnd.pxNext);
 
         uint8_t i = 0;
-        while (pxItem != (OS_ListItem *)(&list->xListEnd))
+        // while (pxItem != (OS_ListItem *)(&list->xListEnd))
+        List_Index_Loop(pxItem)
         {
             printf("\r\n--------------------------------\r\n");
             printf("order:          [%d]\r\n", i++);
@@ -136,7 +138,7 @@ namespace RTOS
             printf("pxContainer:    0x%p\r\n", pxItem->pxContainer);
             printf("pvOwner:        0x%p\r\n", pxItem->pvOwner);
             printf("pxNext:         0x%p\r\n", pxItem->pxNext);
-            pxItem = pxItem->pxNext;
+            // pxItem = pxItem->pxNext;
         }
         printf("\r\n================================\r\n");
     }

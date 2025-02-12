@@ -9,6 +9,7 @@
 // #include <list>
 
 using namespace std;
+
 namespace RTOS
 {
 
@@ -21,6 +22,10 @@ namespace RTOS
         osFALSE = pdFALSE,
         osTURE = pdTRUE,
     } OS_State;
+
+    typedef TaskHandle_t OS_Threat;
+
+    void task_run(void *parm);
 
     /**
      * @brief 启动调度器
@@ -74,38 +79,144 @@ namespace RTOS
     {
     public:
         /**
-         * @brief 创建线程，线程的栈大小为默认值
+         * @brief 创建线程，线程无传入参数，可用于直接创建线程对象
          * @param[in] task_code 线程代码
          * @param[in] name 线程名称
          * @param[in] priority 线程优先值
+         * @param[in] starck_size 堆栈大小，默认值为Default_Starck_size
+         * @example
+         * void task(void* parg)
+         * {
+         *      printf("hello world\r\n");
+         *      //运行结束，自动删除线程
+         * }
+         * 
+         * void rtos_main(void)
+         * {
+         *      Thread TASK(task, "task", 1);
+         *      task.join();
+         *      while(1){}
+         * }
          */
-        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority) : __task_code(task_code)
+        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority, size_t starck_size = Default_Starck_size)
+            : __task_code(task_code), __starck_size(starck_size)
         {
-            xTaskCreate(task_code, name, __starck_size, nullptr, priority, &__handler);
+            strcpy(__name, name);
         }
 
         /**
-         * @brief 创建线程
+         * @brief 创建线程，线程有传入参数，可用于直接创建线程对象
          * @param[in] task_code 线程代码
+         * @param[in] p_arg 线程传入参数
+         * @param[in] name 线程名称
+         * @param[in] priority 线程优先值
+         * @param[in] starck_size 堆栈大小，默认值为Default_Starck_size
+         * @example
+         * void task(void* parg)
+         * {
+         *      printf("a = %d", *((int*)(parg)));
+         *      //运行结束，自动删除线程
+         * }
+         * 
+         * void rtos_main(void)
+         * {
+         *      int a = 10;
+         *      Thread TASK(task, (void*)(&a), "task", 1);
+         *      task.join();
+         *      while(1){}
+         * }
+         */
+        Thread(void (*task_code)(void *p_arg), void *p_arg, const char *name, uint32_t priority, size_t starck_size = Default_Starck_size)
+            : __task_code(task_code), __p_arg(p_arg), __starck_size(starck_size)
+        {
+            strcpy(__name, name);
+        }
+
+        /**
+         * @brief 当选择使用Thread作为基类定义派生类时，无需传入task_code线程代码
+         * 需要在派生类中定义虚函数task_code，作为线程运行的主体，并在调用join后才
+         * 真正的创建该线程，执行task_code里的内容。当task_code结束后，该线程将会被
+         * 自动删除，即FreeRTOS删除任务
          * @param[in] name 线程名称
          * @param[in] starck_size 栈大小
          * @param[in] priority 线程优先值
+         * @example
+         * class TASK: public Thread
+         * {
+         *  public:
+         *  TASK()：Thread("task",1,64){join();}
+         *  virtual void task_code() override
+         *  {
+         *      printf("hello world\r\n");
+         *  }
+         * }
          */
-        Thread(void (*task_code)(void *p_arg), const char *name, uint32_t priority, size_t starck_size) : __task_code(task_code), __starck_size(starck_size)
+        Thread(const char *name, uint32_t priority, size_t starck_size) : __priority(priority), __starck_size(starck_size)
         {
-            xTaskCreate(task_code, name, __starck_size, nullptr, priority, &__handler);
+            strcpy(__name, name);
         }
 
-        void kill()
+        /**
+         * @brief 创建并启动线程
+         */
+        void join()
         {
-            vTaskDelete(__handler);
+            if (!__join_flag)
+            {
+                __join_flag = 1;
+                xTaskCreate(task_run, __name, __starck_size, this, __priority, &__handler);
+            }
+        }
+
+        /**
+         * @brief 挂起线程，无传入参数时挂起自身线程
+         * @param[in] handler 需要挂起的线程句柄
+         */
+        void suspend(OS_Threat handler = nullptr)
+        {
+            vTaskSuspend((TaskHandle_t)handler);
+        }
+
+        /**
+         * @brief 恢复线程
+         * @param[in] handler 需要挂起的线程句柄
+         */
+        void resume(OS_Threat handler)
+        {
+            vTaskResume((TaskHandle_t)handler);
+        }
+
+        /**
+         * @brief 删除线程
+         * @param[in] handler 需要删除的线程句柄
+         */
+        void kill(OS_Threat handler = nullptr)
+        {
+            vTaskDelete((TaskHandle_t)__handler);
+        }
+
+        /**
+         * @brief 获取线程句柄
+         * @return 线程句柄
+         */
+        OS_Threat get_thread_handler()
+        {
+            return __handler;
+        }
+
+        virtual void thread_code()
+        {
+            __task_code(__p_arg);
         }
 
     private:
         void (*__task_code)(void *p_arg);
-        size_t __starck_size = Default_Starck_size;
-        TaskHandle_t __handler;
-        // static std::list<TaskHandle_t> __thread_list;
+        void *__p_arg;
+        char __name[configMAX_TASK_NAME_LEN + 1];
+        uint32_t __priority;
+        size_t __starck_size;
+        OS_Threat __handler;
+        uint8_t __join_flag = 0;
     };
 
     template <typename _Type>
@@ -273,7 +384,7 @@ namespace RTOS
             __list_iterator operator++(int)
             {
                 __list_iterator tmp = *this;
-                ++(*this);//利用前置递增操作符
+                ++(*this); //利用前置递增操作符
                 return tmp;
             }
 

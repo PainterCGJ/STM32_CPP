@@ -265,6 +265,13 @@ namespace RTOS
             taskEXIT_CRITICAL();
         }
     }
+
+    void task_run(void *parm)
+    {
+        Thread *thread = static_cast<Thread *>(parm);
+        thread->thread_code(); //运行线程代码
+        thread->kill();      //结束线程
+    }
 }
 
 extern void rtos_main(void);
@@ -279,7 +286,7 @@ TaskHandle_t MainHandler;
 int main(void)
 {
     system_config();
-    xTaskCreate(__main, "main", 128, nullptr, 0, &MainHandler);
+    xTaskCreate(__main, "main", 1280, nullptr, 0, &MainHandler);
     RTOS::os_start_scheduler();
 }
 /* end of file */

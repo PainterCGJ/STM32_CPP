@@ -1,11 +1,10 @@
 #pragma once
 #include "stm32f10x.h"
 #include <cstdio>
-#include <queue>
 #include "sys_bsp.hpp"
 #include "rtos_bsp.hpp"
 #include "priority.h"
-
+using namespace RTOS;
 extern "C"
 {
     void USART1_IRQHandler(void);
@@ -44,7 +43,8 @@ public:
         uint32_t rx_port_rcc;
     } Uart_info;
 
-    Uart_Dev(Uart_info info, uint32_t baudrate, uint16_t rx_max_size) : __rx_queue(rx_max_size)
+    Uart_Dev(Uart_info info, uint32_t baudrate, uint16_t rx_buf_size = 100, uint16_t tx_buf_size = 200)
+        : __rx_queue(rx_buf_size)
     {
         GPIO_InitTypeDef GPIO_InitStructure;
         USART_InitTypeDef USART_InitStructure;
@@ -57,7 +57,7 @@ public:
             __bsp_init();
         }
         __dev_info = info;
-        __rx_max_size = rx_max_size;
+        __rx_buf_size = rx_buf_size;
 
         switch ((int)(__dev_info.USARTx))
         {
@@ -159,8 +159,10 @@ public:
 private:
     static Uart_Dev *__uart_dev[(int)UartID::U_NUM];
     static uint8_t __bsp_init_flag;
-
-    static void __bsp_init()
+    uint8_t __index;
+    Uart_info __dev_info;
+    queue<uint8_t> __rx_queue;
+    void __bsp_init()
     {
         __bsp_init_flag = 1;
         for (uint8_t i = 0; i < (int)UartID::U_NUM; i++)
@@ -168,13 +170,7 @@ private:
             __uart_dev[i] = nullptr;
         }
     }
-
-    uint8_t __index;
-    Uart_info __dev_info;
-    RTOS::queue<uint8_t> __rx_queue;
-    // std::queue<uint8_t, std::deque<uint8_t, OSAllocator<uint8_t>>> __rx_queue;
-    // std::vector<uint8_t,OSAllocator<uint8_t>> __rx_queue;
-    uint16_t __rx_max_size;
+    uint16_t __rx_buf_size;
 };
 
 extern const Uart_Dev::Uart_info USART1_PA9TX_PA10RX;

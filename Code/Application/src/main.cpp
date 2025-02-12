@@ -1,6 +1,7 @@
 #include <cstdio>
 #include "main.h"
-// #include <thread>
+// #include <list>
+// #include <initializer_list>
 using namespace RTOS;
 void timer_callback(void *arg)
 {
@@ -10,13 +11,13 @@ void timer_callback(void *arg)
 
 void com_task(void *parg)
 {
-	Uart_Dev com(USART1_PA9TX_PA10RX, 115200, 100);
+	Uart_Dev com(USART1_PA9TX_PA10RX, 115200, 100, 200);
 	com.set_debug();
 	printf("hello world\r\n");
 	uint8_t rx;
-	// COM.kill();
 	while (1)
 	{
+		//收到什么就返回什么
 		while (com.recv_len())
 		{
 			rx = com.recv();
@@ -31,33 +32,69 @@ void system_config(void)
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 	systick_init();
 }
+class COM : public Thread
+{
+public:
+	COM() : Thread("COM", 3, 128)
+	{
+		// join();
+	}
+
+	virtual void thread_code() override
+	{
+		Uart_Dev com(USART1_PA9TX_PA10RX, 115200, 100, 200);
+		com.set_debug();
+		printf("hello world\r\n");
+		uint8_t rx;
+		while (1)
+		{
+			//收到什么就返回什么
+			while (com.recv_len())
+			{
+				rx = com.recv();
+				com.send(&rx, 1);
+			}
+			delay_ms(100);
+		}
+	}
+
+private:
+	int b;
+};
+class TEST : public Thread
+{
+public:
+	TEST() : Thread("TEST", 2, 128)
+	{
+		join();
+	}
+	virtual void thread_code() override
+	{
+		while (1)
+		{
+			printf("running...\r\n");
+			delay_ms(1000);
+		}
+	}
+};
+
+typedef struct
+{
+	int e;
+	int b;
+} _str;
 void rtos_main(void)
 {
-	Thread COM(com_task, "com", 1, 100);
+	//创建串口线程
+	// Thread COM1(com_task, "com", 1, 100);
+	COM comth;
+	comth.join();
 
-	int a = 10;
-	list<int> li;
-	li.push_back(a);
-	a=20;
-	li.push_back(a);
-	li.print();
-	// int &b=li.back();
-	printf("b=%d\r\n",li.back());
-	printf("b=%d\r\n",li.front());
-
-
-	while(1)
+	TEST test;
+	// sizeof(COM);
+	while (1)
 	{
-		//delay_ms(1000);
 	}
-	// Timer_Dev::Timer_info init_info = {
-	// 	TIM2,
-	// 	timer_callback,
-	// 	&a,
-	// };
-	// Timer_Dev timer(init_info, 2000000);
-	// timer.enable();
-	// RTOS::os_start_scheduler();
 }
 void vApplicationStackOverflowHook(TaskHandle_t xTask,
 								   char *pcTaskName)

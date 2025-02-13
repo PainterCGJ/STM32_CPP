@@ -34,15 +34,9 @@ namespace RTOS
         if (xPortIsInsideInterrupt() == pdTRUE)
         {
             OS_State os_sta;
-            BaseType_t xTaskWokenByReceive = pdFALSE;
-            os_sta = (OS_State)xQueueReceiveFromISR(os_queue, pxdata, &xTaskWokenByReceive);
-            if (xTaskWokenByReceive != pdFALSE)
-            {
-                /* We should switch context so the ISR returns to a different task.
-           NOTE: How this is done depends on the port you are using. Check
-           the documentation and examples for your port. */
-                taskYIELD();
-            }
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+            os_sta = (OS_State)xQueueReceiveFromISR(os_queue, pxdata, &xHigherPriorityTaskWoken);
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             return os_sta;
         }
         return (OS_State)xQueueReceive(os_queue, pxdata, ticks_to_wait);
@@ -53,15 +47,9 @@ namespace RTOS
         if (xPortIsInsideInterrupt() == pdTRUE)
         {
             OS_State os_sta;
-            BaseType_t xTaskWokenByReceive = pdFALSE;
-            os_sta = (OS_State)xQueueSendFromISR(os_queue, pxdata, &xTaskWokenByReceive);
-            if (xTaskWokenByReceive != pdFALSE)
-            {
-                /* We should switch context so the ISR returns to a different task.
-           NOTE: How this is done depends on the port you are using. Check
-           the documentation and examples for your port. */
-                taskYIELD();
-            }
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+            os_sta = (OS_State)xQueueSendFromISR(os_queue, pxdata, &xHigherPriorityTaskWoken);
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             return os_sta;
         }
         return (OS_State)xQueueSend(os_queue, pxdata, ticks_to_wait);
@@ -72,15 +60,9 @@ namespace RTOS
         if (xPortIsInsideInterrupt() == pdTRUE)
         {
             OS_State os_sta;
-            BaseType_t xTaskWokenByReceive = pdFALSE;
-            os_sta = (OS_State)xQueueOverwriteFromISR(os_queue, pxdata, &xTaskWokenByReceive);
-            if (xTaskWokenByReceive != pdFALSE)
-            {
-                /* We should switch context so the ISR returns to a different task.
-           NOTE: How this is done depends on the port you are using. Check
-           the documentation and examples for your port. */
-                taskYIELD();
-            }
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+            os_sta = (OS_State)xQueueOverwriteFromISR(os_queue, pxdata, &xHigherPriorityTaskWoken);
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             return os_sta;
         }
         return (OS_State)xQueueOverwrite(os_queue, pxdata);
@@ -190,15 +172,9 @@ namespace RTOS
         if (xPortIsInsideInterrupt() == pdTRUE)
         {
             OS_EventBits event_bits;
-            BaseType_t xTaskWokenByReceive = pdFALSE;
-            event_bits = (OS_State)xEventGroupSetBitsFromISR(event, bits_to_set, &xTaskWokenByReceive);
-            if (xTaskWokenByReceive != pdFALSE)
-            {
-                /* We should switch context so the ISR returns to a different task.
-           NOTE: How this is done depends on the port you are using. Check
-           the documentation and examples for your port. */
-                taskYIELD();
-            }
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+            event_bits = (OS_State)xEventGroupSetBitsFromISR(event, bits_to_set, &xHigherPriorityTaskWoken);
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             return event_bits;
         }
         return (OS_EventBits)xEventGroupSetBits(event, bits_to_set);
@@ -218,15 +194,9 @@ namespace RTOS
         if (xPortIsInsideInterrupt() == pdTRUE)
         {
             OS_EventBits event_bits;
-            BaseType_t xTaskWokenByReceive = pdFALSE;
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
             event_bits = (OS_EventBits)xEventGroupGetBitsFromISR(event);
-            if (xTaskWokenByReceive != pdFALSE)
-            {
-                /* We should switch context so the ISR returns to a different task.
-           NOTE: How this is done depends on the port you are using. Check
-           the documentation and examples for your port. */
-                taskYIELD();
-            }
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
             return event_bits;
         }
         return (OS_EventBits)xEventGroupGetBits(event);
@@ -241,7 +211,68 @@ namespace RTOS
         return 0;
     }
 
-    uint32_t os_lock(void)
+    OS_Semaphore os_semaphore_creat(Semaphore_tag tag)
+    {
+        switch (tag)
+        {
+        case BinarySemaphoreTag:
+        {
+            return xSemaphoreCreateBinary();
+        }
+        case MutexSemaphoreTag:
+        {
+            return xSemaphoreCreateMutex();
+        }
+        case RecursiveMutexSemaphoreTag:
+        {
+            return xSemaphoreCreateRecursiveMutex();
+        }
+        }
+        return NULL;
+    }
+
+    OS_Semaphore os_counting_semaphore_creat(uint32_t max_count, uint32_t initial_count)
+    {
+        return xSemaphoreCreateCounting(max_count, initial_count);
+    }
+
+    OS_State os_semaphore_take(OS_Semaphore semaphore, uint32_t ticks_to_wait)
+    {
+        if (xPortIsInsideInterrupt() == pdTRUE)
+        {
+            OS_State os_sta;
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+            os_sta = (OS_State)xSemaphoreTakeFromISR(semaphore, &xHigherPriorityTaskWoken);
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            return os_sta;
+        }
+        return (OS_State)xSemaphoreTake(semaphore, ticks_to_wait);
+    }
+
+    OS_State os_semaphore_give(OS_Semaphore semaphore)
+    {
+        if (xPortIsInsideInterrupt() == pdTRUE)
+        {
+            OS_State os_sta;
+            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+            os_sta = (OS_State)xSemaphoreGiveFromISR(semaphore, &xHigherPriorityTaskWoken);
+            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            return os_sta;
+        }
+        return (OS_State)xSemaphoreGive(semaphore);
+    }
+
+    OS_State os_recursive_semaphore_take(OS_Semaphore semaphore, uint32_t ticks_to_wait)
+    {
+        return (OS_State)xSemaphoreTakeRecursive(semaphore, ticks_to_wait);
+    }
+
+    OS_State os_recursive_semaphore_give(OS_Semaphore semaphore, uint32_t ticks_to_wait)
+    {
+        return (OS_State)xSemaphoreGiveRecursive(semaphore);
+    }
+
+    uint32_t os_cpu_lock(void)
     {
         if (xPortIsInsideInterrupt() == pdTRUE)
         {
@@ -254,7 +285,7 @@ namespace RTOS
         return 0;
     }
 
-    void os_unlock(uint32_t key)
+    void os_cpu_unlock(uint32_t key)
     {
         if (xPortIsInsideInterrupt() == pdTRUE)
         {
@@ -270,7 +301,7 @@ namespace RTOS
     {
         Thread *thread = static_cast<Thread *>(parm);
         thread->thread_code(); //运行线程代码
-        thread->kill();      //结束线程
+        thread->kill();        //结束线程
     }
 }
 

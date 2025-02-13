@@ -4,9 +4,9 @@
 #include "list.h"
 #include "queue.h"
 #include "task.h"
+#include "semphr.h"
 #include <cstring>
 #include <iterator>
-// #include <list>
 
 using namespace std;
 
@@ -16,6 +16,31 @@ namespace RTOS
 #define Default_Starck_size 128
 #define OS_WAIT_FOREVER portMAX_DELAY
 #define List_Index_Loop(item) for (OS_ListItem *__end = (OS_ListItem *)listGET_END_MARKER(item->pxContainer); item != __end; item = item->pxNext)
+
+    // 手动实现 std::enable_if
+    template <bool B, typename T = void>
+    struct enable_if
+    {
+    };
+
+    template <typename T>
+    struct enable_if<true, T>
+    {
+        using type = T;
+    };
+
+    // 手动实现 std::is_same
+    template <typename T, typename U>
+    struct is_same
+    {
+        static const bool value = false;
+    };
+
+    template <typename T>
+    struct is_same<T, T>
+    {
+        static const bool value = true;
+    };
 
     typedef enum
     {
@@ -71,9 +96,24 @@ namespace RTOS
                                const OS_EventBits bits_wait_for,
                                uint32_t ticks_to_wait);
 
+    /* semaphore */
+    typedef enum
+    {
+        BinarySemaphoreTag,
+        MutexSemaphoreTag,
+        RecursiveMutexSemaphoreTag
+    } Semaphore_tag;
+    typedef SemaphoreHandle_t OS_Semaphore;
+    OS_Semaphore os_semaphore_creat(Semaphore_tag tag);
+    OS_Semaphore os_counting_semaphore_creat(uint32_t max_count, uint32_t initial_count);
+    OS_State os_semaphore_take(OS_Semaphore semaphore, uint32_t ticks_to_wait);
+    OS_State os_semaphore_give(OS_Semaphore semaphore);
+    OS_State os_recursive_semaphore_take(OS_Semaphore semaphore, uint32_t ticks_to_wait);
+    OS_State os_recursive_semaphore_give(OS_Semaphore semaphore, uint32_t ticks_to_wait);
+
     /* cpu */
-    uint32_t os_lock(void);
-    void os_unlock(uint32_t key);
+    uint32_t os_cpu_lock(void);
+    void os_cpu_unlock(uint32_t key);
 
     class Thread
     {
@@ -233,43 +273,23 @@ namespace RTOS
         }
 
         /**
-         * @brief 元素入队，遇阻塞不等待
-         * @param[in] elm_to_push 需要入队的元素
-         * @return osFALSE 入队失败；pdTRUE 入队成功
-         */
-        OS_State push(const _Type &elm_to_push)
-        {
-            return os_queue_send(__handler, (uint8_t *)(&elm_to_push), 0);
-        }
-
-        /**
-         * @brief 元素入队
+         * @brief 元素入队，遇到阻塞默认一直等待
          * @param[in] elm_to_push 需要入队的元素
          * @param[in] ticks_to_wait 阻塞时等待时间
          * @return osFALSE 入队失败；pdTRUE 入队成功
          */
-        OS_State push(const _Type &elm_to_push, uint32_t ticks_to_wait)
+        OS_State push(const _Type &elm_to_push, uint32_t ticks_to_wait = OS_WAIT_FOREVER)
         {
             return os_queue_send(__handler, (uint8_t *)(&elm_to_push), ticks_to_wait);
         }
 
         /**
-         * @brief 取出元素，遇阻塞不等待
-         * @param[in] elm_recv 接收取出的元素
-         * @return osFALSE 队列为空，取出失败；pdTRUE 取出成功
-         */
-        OS_State pop(_Type &elm_recv)
-        {
-            return os_queue_recv(__handler, (uint8_t *)(&elm_recv), 0);
-        }
-
-        /**
-         * @brief 取出元素
+         * @brief 取出元素，遇到阻塞默认一直等待
          * @param[in] elm_recv 接收取出的元素
          * @param[in] ticks_to_wait 阻塞时等待时间
          * @return osFALSE 队列为空，取出失败；pdTRUE 取出成功
          */
-        OS_State pop(_Type &elm_recv, uint32_t ticks_to_wait)
+        OS_State pop(_Type &elm_recv, uint32_t ticks_to_wait = OS_WAIT_FOREVER)
         {
             return os_queue_recv(__handler, (uint8_t *)(&elm_recv), ticks_to_wait);
         }
@@ -416,5 +436,70 @@ namespace RTOS
     private:
         OS_List __handle;
     };
+
+    struct binary_semaphore_tag
+    {
+    };
+    struct mutex_semaphore_tag
+    {
+    };
+    struct recursive_semaphore_tag
+    {
+    };
+    struct counting_semaphore_tag
+    {
+    };
+
+#define ENABLE_IF_SAME(T, Tag) typename RTOS::enable_if<RTOS::is_same<T, Tag>::value, int>::type
+
+    template <typename T, typename Tag>
+    using EnableIfSame = typename RTOS::enable_if<RTOS::is_same<T, Tag>::value, int>::type;
+
+    template <typename tag = binary_semaphore_tag>
+    class semaphore
+    {
+    public:
+        template <typename T = tag, EnableIfSame<T, binary_semaphore_tag> = 0>
+        semaphore() : __handler(os_semaphore_creat(BinarySemaphoreTag)) {}
+
+        template <typename T = tag, EnableIfSame<T, mutex_semaphore_tag> = 0>
+        semaphore() : __handler(os_semaphore_creat(MutexSemaphoreTag)) {}
+
+        template <typename T = tag, EnableIfSame<T, recursive_semaphore_tag> = 0>
+        semaphore() : __handler(os_semaphore_creat(RecursiveMutexSemaphoreTag)) {}
+
+        template <typename T = tag, EnableIfSame<T, recursive_semaphore_tag> = 0>
+        OS_State give(uint32_t ticks_to_wait = OS_WAIT_FOREVER)
+        {
+            return os_recursive_semaphore_give((SemaphoreHandle_t)__handler, ticks_to_wait);
+        }
+
+        template <typename T = tag, EnableIfSame<T, recursive_semaphore_tag> = 0>
+        OS_State take(uint32_t ticks_to_wait = OS_WAIT_FOREVER)
+        {
+            return os_recursive_semaphore_take((SemaphoreHandle_t)__handler, ticks_to_wait);
+        }
+
+        template <typename T = tag, EnableIfSame<T, counting_semaphore_tag> = 0>
+        semaphore(uint32_t max_count, uint32_t initial_count) : __handler(os_counting_semaphore_creat(max_count, initial_count)) {}
+
+        template <typename T = tag,
+              typename RTOS::enable_if<!RTOS::is_same<T, recursive_semaphore_tag>::value, int>::type = 0>
+        OS_State give()
+        {
+            return os_semaphore_give(__handler);
+        }
+
+        template <typename T = tag,
+              typename RTOS::enable_if<!RTOS::is_same<T, recursive_semaphore_tag>::value, int>::type = 0>
+        OS_State take(uint32_t ticks_to_wait = OS_WAIT_FOREVER)
+        {
+            return os_semaphore_take(__handler,ticks_to_wait);
+        }
+
+    private:
+        OS_Semaphore __handler;
+    };
+
     // std::vector
 } // namespace RTOS

@@ -35,7 +35,7 @@ void system_config(void)
 class COM : public Thread
 {
 public:
-	COM() : Thread("COM", 3, 128)
+	COM(semaphore<binary_semaphore_tag> &sme) : Thread("COM", 3, 128), _sme(sme)
 	{
 		// join();
 	}
@@ -44,6 +44,7 @@ public:
 	{
 		Uart_Dev com(USART1_PA9TX_PA10RX, 115200, 100, 200);
 		com.set_debug();
+		_sme.give();
 		printf("hello world\r\n");
 		uint8_t rx;
 		while (1)
@@ -59,23 +60,27 @@ public:
 	}
 
 private:
-	int b;
+	semaphore<binary_semaphore_tag> &_sme;
 };
 class TEST : public Thread
 {
 public:
-	TEST() : Thread("TEST", 2, 128)
+	TEST(semaphore<binary_semaphore_tag> &sme) : Thread("TEST", 4, 128), _sme(sme)
 	{
 		join();
 	}
 	virtual void thread_code() override
 	{
+		_sme.take();
 		while (1)
 		{
 			printf("running...\r\n");
 			delay_ms(1000);
 		}
 	}
+
+private:
+	semaphore<binary_semaphore_tag> &_sme;
 };
 
 typedef struct
@@ -87,10 +92,12 @@ void rtos_main(void)
 {
 	//创建串口线程
 	// Thread COM1(com_task, "com", 1, 100);
-	COM comth;
+	semaphore<binary_semaphore_tag> a;
+
+	TEST test(a);
+	COM comth(a);
 	comth.join();
 
-	TEST test;
 	// sizeof(COM);
 	while (1)
 	{

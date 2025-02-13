@@ -28,14 +28,14 @@ namespace RTOS
     void task_run(void *parm);
 
     /**
-     * @brief å¯åŠ¨è°ƒåº¦å™¨
+     * @brief Æô¶¯µ÷¶ÈÆ÷
      */
     void os_start_scheduler();
 
     /**
-     * @brief å°†æ¯«ç§’å•ä½è½¬åŒ–ä¸ºå¿ƒè·³
-     * @param[in] nms æ¯«ç§’å€¼
-     * @return  nmsæ¯«ç§’å¯¹åº”çš„å¿ƒè·³å€¼
+     * @brief ½«ºÁÃëµ¥Î»×ª»¯ÎªĞÄÌø
+     * @param[in] nms ºÁÃëÖµ
+     * @return  nmsºÁÃë¶ÔÓ¦µÄĞÄÌøÖµ
      */
     uint32_t os_ms_to_ticks(uint32_t nms);
 
@@ -79,16 +79,16 @@ namespace RTOS
     {
     public:
         /**
-         * @brief åˆ›å»ºçº¿ç¨‹ï¼Œçº¿ç¨‹æ— ä¼ å…¥å‚æ•°ï¼Œå¯ç”¨äºç›´æ¥åˆ›å»ºçº¿ç¨‹å¯¹è±¡
-         * @param[in] task_code çº¿ç¨‹ä»£ç 
-         * @param[in] name çº¿ç¨‹åç§°
-         * @param[in] priority çº¿ç¨‹ä¼˜å…ˆå€¼
-         * @param[in] starck_size å †æ ˆå¤§å°ï¼Œé»˜è®¤å€¼ä¸ºDefault_Starck_size
+         * @brief ´´½¨Ïß³Ì£¬Ïß³ÌÎŞ´«Èë²ÎÊı£¬¿ÉÓÃÓÚÖ±½Ó´´½¨Ïß³Ì¶ÔÏó
+         * @param[in] task_code Ïß³Ì´úÂë
+         * @param[in] name Ïß³ÌÃû³Æ
+         * @param[in] priority Ïß³ÌÓÅÏÈÖµ
+         * @param[in] starck_size ¶ÑÕ»´óĞ¡£¬Ä¬ÈÏÖµÎªDefault_Starck_size
          * @example
          * void task(void* parg)
          * {
          *      printf("hello world\r\n");
-         *      //è¿è¡Œç»“æŸï¼Œè‡ªåŠ¨åˆ é™¤çº¿ç¨‹
+         *      //ÔËĞĞ½áÊø£¬×Ô¶¯É¾³ıÏß³Ì
          * }
          * 
          * void rtos_main(void)
@@ -105,17 +105,17 @@ namespace RTOS
         }
 
         /**
-         * @brief åˆ›å»ºçº¿ç¨‹ï¼Œçº¿ç¨‹æœ‰ä¼ å…¥å‚æ•°ï¼Œå¯ç”¨äºç›´æ¥åˆ›å»ºçº¿ç¨‹å¯¹è±¡
-         * @param[in] task_code çº¿ç¨‹ä»£ç 
-         * @param[in] p_arg çº¿ç¨‹ä¼ å…¥å‚æ•°
-         * @param[in] name çº¿ç¨‹åç§°
-         * @param[in] priority çº¿ç¨‹ä¼˜å…ˆå€¼
-         * @param[in] starck_size å †æ ˆå¤§å°ï¼Œé»˜è®¤å€¼ä¸ºDefault_Starck_size
+         * @brief ´´½¨Ïß³Ì£¬Ïß³ÌÓĞ´«Èë²ÎÊı£¬¿ÉÓÃÓÚÖ±½Ó´´½¨Ïß³Ì¶ÔÏó
+         * @param[in] task_code Ïß³Ì´úÂë
+         * @param[in] p_arg Ïß³Ì´«Èë²ÎÊı
+         * @param[in] name Ïß³ÌÃû³Æ
+         * @param[in] priority Ïß³ÌÓÅÏÈÖµ
+         * @param[in] starck_size ¶ÑÕ»´óĞ¡£¬Ä¬ÈÏÖµÎªDefault_Starck_size
          * @example
          * void task(void* parg)
          * {
          *      printf("a = %d", *((int*)(parg)));
-         *      //è¿è¡Œç»“æŸï¼Œè‡ªåŠ¨åˆ é™¤çº¿ç¨‹
+         *      //ÔËĞĞ½áÊø£¬×Ô¶¯É¾³ıÏß³Ì
          * }
          * 
          * void rtos_main(void)
@@ -133,18 +133,18 @@ namespace RTOS
         }
 
         /**
-         * @brief å½“é€‰æ‹©ä½¿ç”¨Threadä½œä¸ºåŸºç±»å®šä¹‰æ´¾ç”Ÿç±»æ—¶ï¼Œæ— éœ€ä¼ å…¥task_codeçº¿ç¨‹ä»£ç 
-         * éœ€è¦åœ¨æ´¾ç”Ÿç±»ä¸­å®šä¹‰è™šå‡½æ•°task_codeï¼Œä½œä¸ºçº¿ç¨‹è¿è¡Œçš„ä¸»ä½“ï¼Œå¹¶åœ¨è°ƒç”¨joinåæ‰
-         * çœŸæ­£çš„åˆ›å»ºè¯¥çº¿ç¨‹ï¼Œæ‰§è¡Œtask_codeé‡Œçš„å†…å®¹ã€‚å½“task_codeç»“æŸåï¼Œè¯¥çº¿ç¨‹å°†ä¼šè¢«
-         * è‡ªåŠ¨åˆ é™¤ï¼Œå³FreeRTOSåˆ é™¤ä»»åŠ¡
-         * @param[in] name çº¿ç¨‹åç§°
-         * @param[in] starck_size æ ˆå¤§å°
-         * @param[in] priority çº¿ç¨‹ä¼˜å…ˆå€¼
+         * @brief µ±Ñ¡ÔñÊ¹ÓÃThread×÷Îª»ùÀà¶¨ÒåÅÉÉúÀàÊ±£¬ÎŞĞè´«Èëtask_codeÏß³Ì´úÂë
+         * ĞèÒªÔÚÅÉÉúÀàÖĞ¶¨ÒåĞéº¯Êıtask_code£¬×÷ÎªÏß³ÌÔËĞĞµÄÖ÷Ìå£¬²¢ÔÚµ÷ÓÃjoinºó²Å
+         * ÕæÕıµÄ´´½¨¸ÃÏß³Ì£¬Ö´ĞĞtask_codeÀïµÄÄÚÈİ¡£µ±task_code½áÊøºó£¬¸ÃÏß³Ì½«»á±»
+         * ×Ô¶¯É¾³ı£¬¼´FreeRTOSÉ¾³ıÈÎÎñ
+         * @param[in] name Ïß³ÌÃû³Æ
+         * @param[in] starck_size Õ»´óĞ¡
+         * @param[in] priority Ïß³ÌÓÅÏÈÖµ
          * @example
          * class TASK: public Thread
          * {
          *  public:
-         *  TASK()ï¼šThread("task",1,64){join();}
+         *  TASK()£ºThread("task",1,64){join();}
          *  virtual void task_code() override
          *  {
          *      printf("hello world\r\n");
@@ -157,7 +157,7 @@ namespace RTOS
         }
 
         /**
-         * @brief åˆ›å»ºå¹¶å¯åŠ¨çº¿ç¨‹
+         * @brief ´´½¨²¢Æô¶¯Ïß³Ì
          */
         void join()
         {
@@ -169,8 +169,8 @@ namespace RTOS
         }
 
         /**
-         * @brief æŒ‚èµ·çº¿ç¨‹ï¼Œæ— ä¼ å…¥å‚æ•°æ—¶æŒ‚èµ·è‡ªèº«çº¿ç¨‹
-         * @param[in] handler éœ€è¦æŒ‚èµ·çš„çº¿ç¨‹å¥æŸ„
+         * @brief ¹ÒÆğÏß³Ì£¬ÎŞ´«Èë²ÎÊıÊ±¹ÒÆğ×ÔÉíÏß³Ì
+         * @param[in] handler ĞèÒª¹ÒÆğµÄÏß³Ì¾ä±ú
          */
         void suspend(OS_Threat handler = nullptr)
         {
@@ -178,8 +178,8 @@ namespace RTOS
         }
 
         /**
-         * @brief æ¢å¤çº¿ç¨‹
-         * @param[in] handler éœ€è¦æŒ‚èµ·çš„çº¿ç¨‹å¥æŸ„
+         * @brief »Ö¸´Ïß³Ì
+         * @param[in] handler ĞèÒª¹ÒÆğµÄÏß³Ì¾ä±ú
          */
         void resume(OS_Threat handler)
         {
@@ -187,8 +187,8 @@ namespace RTOS
         }
 
         /**
-         * @brief åˆ é™¤çº¿ç¨‹
-         * @param[in] handler éœ€è¦åˆ é™¤çš„çº¿ç¨‹å¥æŸ„
+         * @brief É¾³ıÏß³Ì
+         * @param[in] handler ĞèÒªÉ¾³ıµÄÏß³Ì¾ä±ú
          */
         void kill(OS_Threat handler = nullptr)
         {
@@ -196,8 +196,8 @@ namespace RTOS
         }
 
         /**
-         * @brief è·å–çº¿ç¨‹å¥æŸ„
-         * @return çº¿ç¨‹å¥æŸ„
+         * @brief »ñÈ¡Ïß³Ì¾ä±ú
+         * @return Ïß³Ì¾ä±ú
          */
         OS_Threat get_thread_handler()
         {
@@ -224,8 +224,8 @@ namespace RTOS
     {
     public:
         /**
-         * @brief æ„é€ é˜Ÿåˆ—
-         * @param[in] queue_length é˜Ÿåˆ—å®¹é‡ï¼ŒæŒ‡èƒ½å®¹çº³å…ƒç´ çš„ä¸ªæ•°
+         * @brief ¹¹Ôì¶ÓÁĞ
+         * @param[in] queue_length ¶ÓÁĞÈİÁ¿£¬Ö¸ÄÜÈİÄÉÔªËØµÄ¸öÊı
          */
         queue(uint32_t queue_length)
         {
@@ -233,9 +233,9 @@ namespace RTOS
         }
 
         /**
-         * @brief å…ƒç´ å…¥é˜Ÿï¼Œé‡é˜»å¡ä¸ç­‰å¾…
-         * @param[in] elm_to_push éœ€è¦å…¥é˜Ÿçš„å…ƒç´ 
-         * @return osFALSE å…¥é˜Ÿå¤±è´¥ï¼›pdTRUE å…¥é˜ŸæˆåŠŸ
+         * @brief ÔªËØÈë¶Ó£¬Óö×èÈû²»µÈ´ı
+         * @param[in] elm_to_push ĞèÒªÈë¶ÓµÄÔªËØ
+         * @return osFALSE Èë¶ÓÊ§°Ü£»pdTRUE Èë¶Ó³É¹¦
          */
         OS_State push(const _Type &elm_to_push)
         {
@@ -243,10 +243,10 @@ namespace RTOS
         }
 
         /**
-         * @brief å…ƒç´ å…¥é˜Ÿ
-         * @param[in] elm_to_push éœ€è¦å…¥é˜Ÿçš„å…ƒç´ 
-         * @param[in] ticks_to_wait é˜»å¡æ—¶ç­‰å¾…æ—¶é—´
-         * @return osFALSE å…¥é˜Ÿå¤±è´¥ï¼›pdTRUE å…¥é˜ŸæˆåŠŸ
+         * @brief ÔªËØÈë¶Ó
+         * @param[in] elm_to_push ĞèÒªÈë¶ÓµÄÔªËØ
+         * @param[in] ticks_to_wait ×èÈûÊ±µÈ´ıÊ±¼ä
+         * @return osFALSE Èë¶ÓÊ§°Ü£»pdTRUE Èë¶Ó³É¹¦
          */
         OS_State push(const _Type &elm_to_push, uint32_t ticks_to_wait)
         {
@@ -254,9 +254,9 @@ namespace RTOS
         }
 
         /**
-         * @brief å–å‡ºå…ƒç´ ï¼Œé‡é˜»å¡ä¸ç­‰å¾…
-         * @param[in] elm_recv æ¥æ”¶å–å‡ºçš„å…ƒç´ 
-         * @return osFALSE é˜Ÿåˆ—ä¸ºç©ºï¼Œå–å‡ºå¤±è´¥ï¼›pdTRUE å–å‡ºæˆåŠŸ
+         * @brief È¡³öÔªËØ£¬Óö×èÈû²»µÈ´ı
+         * @param[in] elm_recv ½ÓÊÕÈ¡³öµÄÔªËØ
+         * @return osFALSE ¶ÓÁĞÎª¿Õ£¬È¡³öÊ§°Ü£»pdTRUE È¡³ö³É¹¦
          */
         OS_State pop(_Type &elm_recv)
         {
@@ -264,10 +264,10 @@ namespace RTOS
         }
 
         /**
-         * @brief å–å‡ºå…ƒç´ 
-         * @param[in] elm_recv æ¥æ”¶å–å‡ºçš„å…ƒç´ 
-         * @param[in] ticks_to_wait é˜»å¡æ—¶ç­‰å¾…æ—¶é—´
-         * @return osFALSE é˜Ÿåˆ—ä¸ºç©ºï¼Œå–å‡ºå¤±è´¥ï¼›pdTRUE å–å‡ºæˆåŠŸ
+         * @brief È¡³öÔªËØ
+         * @param[in] elm_recv ½ÓÊÕÈ¡³öµÄÔªËØ
+         * @param[in] ticks_to_wait ×èÈûÊ±µÈ´ıÊ±¼ä
+         * @return osFALSE ¶ÓÁĞÎª¿Õ£¬È¡³öÊ§°Ü£»pdTRUE È¡³ö³É¹¦
          */
         OS_State pop(_Type &elm_recv, uint32_t ticks_to_wait)
         {
@@ -275,8 +275,8 @@ namespace RTOS
         }
 
         /**
-         * @brief æŸ¥è¯¢å½“å‰é˜Ÿåˆ—ä¸­æ‰€å«çš„å…ƒç´ ä¸ªæ•°
-         * @return å½“å‰é˜Ÿåˆ—ä¸­æ‰€å«çš„å…ƒç´ ä¸ªæ•°
+         * @brief ²éÑ¯µ±Ç°¶ÓÁĞÖĞËùº¬µÄÔªËØ¸öÊı
+         * @return µ±Ç°¶ÓÁĞÖĞËùº¬µÄÔªËØ¸öÊı
          */
         uint32_t size() { return uxQueueMessagesWaiting(__handler); }
 
@@ -361,53 +361,53 @@ namespace RTOS
         public:
             __list_iterator(OS_ListItem *item = nullptr) : _current(item) {}
 
-            // è§£å¼•ç”¨æ“ä½œç¬¦
+            // ½âÒıÓÃ²Ù×÷·û
             _Type &operator*() const
             {
                 return *reinterpret_cast<_Type *>(_current->pvOwner);
             }
 
-            // æˆå‘˜è®¿é—®æ“ä½œç¬¦
+            // ³ÉÔ±·ÃÎÊ²Ù×÷·û
             _Type *operator->() const
             {
                 return reinterpret_cast<_Type *>(_current->pvOwner);
             }
 
-            // å‰ç½®é€’å¢æ“ä½œç¬¦
+            // Ç°ÖÃµİÔö²Ù×÷·û
             __list_iterator &operator++()
             {
                 _current = reinterpret_cast<OS_ListItem *>(listGET_NEXT(_current));
                 return *this;
             }
 
-            // åç½®é€’å¢æ“ä½œç¬¦
+            // ºóÖÃµİÔö²Ù×÷·û
             __list_iterator operator++(int)
             {
                 __list_iterator tmp = *this;
-                ++(*this); //åˆ©ç”¨å‰ç½®é€’å¢æ“ä½œç¬¦
+                ++(*this); //ÀûÓÃÇ°ÖÃµİÔö²Ù×÷·û
                 return tmp;
             }
 
-            // ç›¸ç­‰æ€§æ¯”è¾ƒ
+            // ÏàµÈĞÔ±È½Ï
             bool operator==(const __list_iterator &other) const
             {
                 return _current == other._current;
             }
 
-            // ä¸ç­‰æ€§æ¯”è¾ƒ
+            // ²»µÈĞÔ±È½Ï
             bool operator!=(const __list_iterator &other) const
             {
                 return _current != other._current;
             }
         };
 
-        // è¿”å›æŒ‡å‘é“¾è¡¨å¼€å¤´çš„è¿­ä»£å™¨
+        // ·µ»ØÖ¸ÏòÁ´±í¿ªÍ·µÄµü´úÆ÷
         __list_iterator begin() const
         {
             return __list_iterator(reinterpret_cast<OS_ListItem *>(listGET_HEAD_ENTRY(__handle)));
         }
 
-        // è¿”å›æŒ‡å‘é“¾è¡¨æœ«å°¾çš„è¿­ä»£å™¨
+        // ·µ»ØÖ¸ÏòÁ´±íÄ©Î²µÄµü´úÆ÷
         __list_iterator end() const
         {
             return __list_iterator(reinterpret_cast<OS_ListItem *>(&(__handle->xListEnd)));

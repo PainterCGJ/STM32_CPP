@@ -109,7 +109,7 @@ namespace RTOS
     OS_State os_semaphore_take(OS_Semaphore semaphore, uint32_t ticks_to_wait);
     OS_State os_semaphore_give(OS_Semaphore semaphore);
     OS_State os_recursive_semaphore_take(OS_Semaphore semaphore, uint32_t ticks_to_wait);
-    OS_State os_recursive_semaphore_give(OS_Semaphore semaphore, uint32_t ticks_to_wait);
+    OS_State os_recursive_semaphore_give(OS_Semaphore semaphore);
 
     /* cpu */
     uint32_t os_cpu_lock(void);
@@ -469,9 +469,9 @@ namespace RTOS
         semaphore() : __handler(os_semaphore_creat(RecursiveMutexSemaphoreTag)) {}
 
         template <typename T = tag, EnableIfSame<T, recursive_semaphore_tag> = 0>
-        OS_State give(uint32_t ticks_to_wait = OS_WAIT_FOREVER)
+        OS_State give()
         {
-            return os_recursive_semaphore_give((SemaphoreHandle_t)__handler, ticks_to_wait);
+            return os_recursive_semaphore_give((SemaphoreHandle_t)__handler);
         }
 
         template <typename T = tag, EnableIfSame<T, recursive_semaphore_tag> = 0>
@@ -484,22 +484,40 @@ namespace RTOS
         semaphore(uint32_t max_count, uint32_t initial_count) : __handler(os_counting_semaphore_creat(max_count, initial_count)) {}
 
         template <typename T = tag,
-              typename RTOS::enable_if<!RTOS::is_same<T, recursive_semaphore_tag>::value, int>::type = 0>
+                  typename RTOS::enable_if<!RTOS::is_same<T, recursive_semaphore_tag>::value, int>::type = 0>
         OS_State give()
         {
             return os_semaphore_give(__handler);
         }
 
         template <typename T = tag,
-              typename RTOS::enable_if<!RTOS::is_same<T, recursive_semaphore_tag>::value, int>::type = 0>
+                  typename RTOS::enable_if<!RTOS::is_same<T, recursive_semaphore_tag>::value, int>::type = 0>
         OS_State take(uint32_t ticks_to_wait = OS_WAIT_FOREVER)
         {
-            return os_semaphore_take(__handler,ticks_to_wait);
+            return os_semaphore_take(__handler, ticks_to_wait);
         }
 
     private:
         OS_Semaphore __handler;
     };
+
+    class mutex : private semaphore<mutex_semaphore_tag>
+    {
+    public:
+        mutex() : semaphore<mutex_semaphore_tag>() { unlock(); }
+        OS_State unlock() { return give(); }
+        OS_State lock(uint32_t ticks_to_wait = OS_WAIT_FOREVER) { return take(ticks_to_wait); }
+    };
+
+    class recursive_mutex : private semaphore<recursive_semaphore_tag>
+    {
+    public:
+        recursive_mutex() : semaphore<recursive_semaphore_tag>() { unlock(); }
+        OS_State unlock() { return give(); }
+        OS_State lock(uint32_t ticks_to_wait = OS_WAIT_FOREVER) { return take(ticks_to_wait); }
+    };
+
+    
 
     // std::vector
 } // namespace RTOS

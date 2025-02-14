@@ -267,7 +267,7 @@ namespace RTOS
         return (OS_State)xSemaphoreTakeRecursive(semaphore, ticks_to_wait);
     }
 
-    OS_State os_recursive_semaphore_give(OS_Semaphore semaphore, uint32_t ticks_to_wait)
+    OS_State os_recursive_semaphore_give(OS_Semaphore semaphore)
     {
         return (OS_State)xSemaphoreGiveRecursive(semaphore);
     }

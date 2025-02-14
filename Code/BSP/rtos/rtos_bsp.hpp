@@ -437,6 +437,40 @@ namespace RTOS
         OS_List __handle;
     };
 
+    class event
+    {
+
+    public:
+        event() : __handler(os_event_create()) {}
+        OS_EventBits set(OS_EventBits bits_to_set)
+        {
+            return os_set_event_bits(__handler, bits_to_set);
+        }
+
+        OS_EventBits clear(OS_EventBits bits_to_clear)
+        {
+            return os_clear_event_bits(__handler, bits_to_clear);
+        }
+
+        OS_EventBits get()
+        {
+            return os_get_event_bits(__handler);
+        }
+
+        OS_EventBits wait(OS_EventBits bits_to_wait, uint32_t ticks_to_wait = OS_WAIT_FOREVER, OS_State wait_for_all = osTURE)
+        {
+            return xEventGroupWaitBits(__handler, bits_to_wait, osFALSE, wait_for_all, ticks_to_wait);
+        }
+
+        OS_EventBits sync(OS_EventBits bits_to_set, OS_EventBits bits_wait_for, uint32_t ticks_to_wait = OS_WAIT_FOREVER)
+        {
+            return os_event_sync(__handler, bits_to_set, bits_wait_for, ticks_to_wait);
+        }
+
+    private:
+        OS_Event __handler;
+    };
+
     struct binary_semaphore_tag
     {
     };
@@ -516,8 +550,6 @@ namespace RTOS
         OS_State unlock() { return give(); }
         OS_State lock(uint32_t ticks_to_wait = OS_WAIT_FOREVER) { return take(ticks_to_wait); }
     };
-
-    
 
     // std::vector
 } // namespace RTOS

@@ -315,6 +315,11 @@ namespace RTOS
             __handle = os_list_create();
         }
 
+        ~list()
+        {
+            os_delet_list(__handle, osTURE, osTURE);
+        }
+
         void push_back(const _Type &elm_to_push)
         {
             _Type *__elm = new _Type;
@@ -442,6 +447,10 @@ namespace RTOS
 
     public:
         event() : __handler(os_event_create()) {}
+        ~event()
+        {
+            vEventGroupDelete(__handler);
+        }
         OS_EventBits set(OS_EventBits bits_to_set)
         {
             return os_set_event_bits(__handler, bits_to_set);
@@ -529,6 +538,11 @@ namespace RTOS
         OS_State take(uint32_t ticks_to_wait = OS_WAIT_FOREVER)
         {
             return os_semaphore_take(__handler, ticks_to_wait);
+        }
+
+        ~semaphore()
+        {
+            vSemaphoreDelete(__handler);
         }
 
     private:
